@@ -8,6 +8,7 @@
       node-key="catId"
       :default-expanded-keys="defaultExpandedKeys"
     >
+      >
       <span class="custom-tree-node" slot-scope="{ node, data }">
         <span>{{ node.label }}</span>
         <span>
@@ -34,10 +35,21 @@
       </span>
     </el-tree>
 
-    <el-dialog title="提示" :visible.sync="dialogVisible" >
+    <el-dialog :title="titil" :visible.sync="dialogVisible">
       <el-form :model="category">
         <el-form-item label="分类名称">
           <el-input v-model="category.name" autocomplete="off"></el-input>
+        </el-form-item>
+
+        <el-form-item label="图标">
+          <el-input v-model="category.icon" autocomplete="off"></el-input>
+        </el-form-item>
+
+        <el-form-item label="计量单位">
+          <el-input
+            v-model="category.productUnit"
+            autocomplete="off"
+          ></el-input>
         </el-form-item>
       </el-form>
 
@@ -58,13 +70,16 @@ export default {
   props: {},
   data() {
     return {
+      titil: "",
       category: {
         name: "",
         parentCid: "",
         catLevel: "",
         showStatus: "1",
         sort: "0",
-        productCount: "0"
+        productCount: "0",
+        icon: "",
+        productUnit: "",
       },
       dialogVisible: false,
       defaultExpandedKeys: [],
@@ -96,7 +111,7 @@ export default {
             this.getmenus();
             //设置需要默认展开的菜单
             this.defaultExpandedKeys = [node.parent.data.catId];
-            this.category
+            this.category;
           } else {
             this.$message.error(data.msg);
           }
@@ -118,19 +133,25 @@ export default {
           this.category.productCount = data.category.productCount;
           this.category.sort = data.category.sort;
           this.category.catLevel = data.category.catLevel;
+          this.category.icon = data.category.icon;
+          this.category.productUnit = data.category.productUnit;
         }
       });
+      this.titil = "添加分类";
       this.dialogVisible = true;
     },
     //添加按钮的方法
     append(data) {
       console.log("append", data);
+      this.titil = "添加分类";
       this.dialogVisible = true;
       this.category.name = "";
       this.category.sort = "0";
       this.category.catId = "";
       this.category.showStatus = "1";
       this.category.productCount = "0";
+      this.category.icon = "";
+      this.category.productUnit = "";
       this.category.parentCid = data.catId;
       this.category.catLevel = data.catLevel * 1 + 1;
     },
@@ -174,7 +195,7 @@ export default {
         this.menus = data.data;
         console.log("成功获取到数据", data.data);
       });
-    },
+    }
   },
   //计算机属性 类似data概念
   computed: {},
