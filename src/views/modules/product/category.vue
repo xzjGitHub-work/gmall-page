@@ -18,6 +18,7 @@
             @click="() => append(data)"
             >Append</el-button
           >
+
           <el-button
             v-if="node.childNodes.length == 0"
             type="text"
@@ -25,16 +26,20 @@
             @click="() => remove(node, data)"
             >Delete</el-button
           >
+
+          <el-button type="text" size="mini" @click="() => edit(node, data)"
+            >Update</el-button
+          >
         </span>
       </span>
     </el-tree>
-    <el-dialog title="提示" :visible.sync="dialogVisible" width="30%">
 
+    <el-dialog title="提示" :visible.sync="dialogVisible" >
       <el-form :model="category">
         <el-form-item label="分类名称">
           <el-input v-model="category.name" autocomplete="off"></el-input>
         </el-form-item>
-
+      </el-form>
 
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
@@ -53,7 +58,14 @@ export default {
   props: {},
   data() {
     return {
-      category: {name:"",parentCid:"",catLevel:"",showStatus:"1",sort:"0"},
+      category: {
+        name: "",
+        parentCid: "",
+        catLevel: "",
+        showStatus: "1",
+        sort: "0",
+        productCount: "0"
+      },
       dialogVisible: false,
       defaultExpandedKeys: [],
       menus: [],
@@ -65,36 +77,62 @@ export default {
   },
   methods: {
     //添加三级分类的方法
-    appendCategory(){
-      console.log("data",this.category);
-      var data =this.category;
+    appendCategory() {
+      console.log("data", this.category);
+      var data = this.category;
       this.$http({
-      url: this.$http.adornUrl('/gmallproduct/category/save'),
-      method: 'post',
-      data: this.$http.adornData(data,false)
-      }).then(({data})=>{
-        if (data && data.code === 0) {
-              this.$message({
-                message: "操作成功",
-                type: "success",
-                duration: 1500,
-              });
-              this.dialogVisible = false;
-              this.getmenus();
-               //设置需要默认展开的菜单
-              this.defaultExpandedKeys = [node.parent.data.catId];
-            } else {
-              this.$message.error(data.msg);
-            }
+        url: this.$http.adornUrl("/gmallproduct/category/edit"),
+        method: "post",
+        data: this.$http.adornData(data, false),
       })
-      .catch(() => {});
+        .then(({ data }) => {
+          if (data && data.code === 0) {
+            this.$message({
+              message: "操作成功",
+              type: "success",
+              duration: 1500,
+            });
+            this.dialogVisible = false;
+            this.getmenus();
+            //设置需要默认展开的菜单
+            this.defaultExpandedKeys = [node.parent.data.catId];
+            this.category
+          } else {
+            this.$message.error(data.msg);
+          }
+        })
+        .catch(() => {});
+    },
+    //修改按钮的方法
+    edit(node, data) {
+      this.$http({
+        url: this.$http.adornUrl("/gmallproduct/category/info/" + data.catId),
+        method: "get",
+        data: this.$http.adornData(),
+      }).then(({ data }) => {
+        if (data && data.code === 0) {
+          this.category.name = data.category.name;
+          this.category.catId = data.category.catId;
+          this.category.parentCid = data.category.parentCid;
+          this.category.showStatus = data.category.showStatus;
+          this.category.productCount = data.category.productCount;
+          this.category.sort = data.category.sort;
+          this.category.catLevel = data.category.catLevel;
+        }
+      });
+      this.dialogVisible = true;
     },
     //添加按钮的方法
     append(data) {
       console.log("append", data);
       this.dialogVisible = true;
-      this.category.parentCid= data.catId;
-      this.category.catLevel= data.catLevel*1 + 1;
+      this.category.name = "";
+      this.category.sort = "0";
+      this.category.catId = "";
+      this.category.showStatus = "1";
+      this.category.productCount = "0";
+      this.category.parentCid = data.catId;
+      this.category.catLevel = data.catLevel * 1 + 1;
     },
     //删除按钮的方法
     remove(node, data) {
@@ -117,9 +155,9 @@ export default {
                 type: "success",
                 duration: 1500,
               });
-                  this.getmenus();
-                  //设置需要默认展开的菜单
-                  this.defaultExpandedKeys = [node.parent.data.catId];
+              this.getmenus();
+              //设置需要默认展开的菜单
+              this.defaultExpandedKeys = [node.parent.data.catId];
             } else {
               this.$message.error(data.msg);
             }
